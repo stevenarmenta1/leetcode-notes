@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const notes = await getCollection('notes', ({ data }) => !data.draft);
+
+// Group by pattern
+const byPattern = notes.reduce<Record<string, typeof notes>>((acc, note) => {
+  const p = note.data.pattern;
+  if (!acc[p]) acc[p] = [];
+  acc[p].push(note);
+  return acc;
+}, {});
+
+const patterns = Object.entries(byPattern)
+  .map(([pattern, entries]) => ({
+    pattern,
+    entries: entries.sort((a, b) => a.data.problem - b.data.problem),
+  }))
+  .sort((a, b) => b.entries.length - a.entries.length);
+---
+
+<BaseLayout
+  title="Patterns"
+  description="LeetCode notes organized by algorithmic pattern — stack, sliding window, dynamic programming, and more. By Steven Armenta."
+>
+  <section class="container" style="padding-top: 3rem;">
+    <p class="hero-eyebrow" style="margin-bottom: 0.75rem;">By technique</p>
+    <h1 style="font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3rem); font-weight: 400; letter-spacing: -0.02em; margin-bottom: 0.5rem;">
+      Patterns
+    </h1>
+    <p style="color: var(--ink-soft); margin-bottom: 2.5rem; max-width: var(--measure);">
+      The point of doing problems isn't the problems — it's the patterns.
+      Notes grouped by the technique they teach.
+    </p>
+
+    {patterns.length === 0 ? (
+      <p style="color: var(--ink-mute);">Patterns will appear here once notes are published.</p>
+    ) : (
+      patterns.map(({ pattern, entries }) => (
+        <div style="margin-bottom: 3rem;">
+          <h2 class="section-heading" style="margin-top: 0;">
+            <span style="color: var(--ink); font-family: var(--font-display); font-size: var(--fs-lg); text-transform: none; letter-spacing: -0.01em;">
+              {pattern}
+            </span>
+            <span style="color: var(--ink-mute);">{entries.length}</span>
+          </h2>
+          <ul style="list-style: none; padding: 0;">
+            {entries.map((e) => (
+              <li style="padding: 0.4rem 0; border-bottom: 1px dashed var(--rule);">
+                <a href={`/notes/${e.slug}/`} style="text-decoration: none; display: flex; gap: 1rem; align-items: baseline;">
+                  <span style="font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--ink-mute); min-width: 4ch;">
+                    {String(e.data.problem).padStart(4, '0')}
+                  </span>
+                  <span style="font-family: var(--font-display); font-size: var(--fs-md);">
+                    {e.data.title}
+                  </span>
+                  <span class={`pill pill--${e.data.difficulty.toLowerCase()}`} style="margin-left: auto;">
+                    {e.data.difficulty}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    )}
+  </section>
+</BaseLayout>

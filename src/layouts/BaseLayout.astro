@@ -1,0 +1,110 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Page-specific Open Graph type. Default 'website'. Use 'article' on note pages. */
+  ogType?: 'website' | 'article';
+  /** ISO date string used for article meta. */
+  publishedTime?: string;
+  modifiedTime?: string;
+  /** If true, this page injects Person schema (use only on the homepage). */
+  isHomepage?: boolean;
+}
+
+const {
+  title,
+  description,
+  ogType = 'website',
+  publishedTime,
+  modifiedTime,
+  isHomepage = false,
+} = Astro.props;
+
+const siteName = 'Steven Armenta';
+const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL('/og-default.png', Astro.site).toString();
+
+// JSON-LD: Person schema is the single biggest SEO lever for ranking on a name.
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Steven Armenta',
+  url: Astro.site?.toString(),
+  jobTitle: 'Computer Science Graduate, Computer Operations Technician',
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: 'Southern New Hampshire University' },
+  ],
+  knowsAbout: [
+    'Computer Science', 'Algorithms', 'Data Structures',
+    'Software Engineering', 'LeetCode', 'Problem Solving',
+  ],
+  sameAs: [
+    'https://www.linkedin.com/in/stevenarmenta/',
+    // TODO: add GitHub, Twitter/X, etc. once you have them
+  ],
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Steven Armenta" />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    {ogType === 'article' && <meta property="article:author" content="Steven Armenta" />}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fonts: Fraunces (display serif), Inter (body), JetBrains Mono (code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+
+    <!-- RSS autodiscovery -->
+    <link rel="alternate" type="application/rss+xml" title={`${siteName} — Notes`} href="/rss.xml" />
+
+    <!-- Person schema (homepage only — avoids duplication penalties) -->
+    {isHomepage && (
+      <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+    )}
+
+    <slot name="head" />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

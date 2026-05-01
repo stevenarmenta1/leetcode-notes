@@ -1,0 +1,84 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'notes'>;
+}
+
+const { entry } = Astro.props;
+const { data } = entry;
+
+const difficultyClass = `pill pill--${data.difficulty.toLowerCase()}`;
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+// TechArticle schema — helps Google understand this is a technical write-up
+// authored by the Person already declared site-wide.
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: data.title,
+  description: data.description,
+  author: {
+    '@type': 'Person',
+    name: 'Steven Armenta',
+    url: Astro.site?.toString(),
+  },
+  datePublished: data.publishedAt.toISOString(),
+  dateModified: (data.updatedAt ?? data.publishedAt).toISOString(),
+  keywords: [data.pattern, ...data.tags, 'LeetCode', `LeetCode ${data.problem}`].join(', '),
+  about: data.pattern,
+  mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).toString(),
+};
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  ogType="article"
+  publishedTime={data.publishedAt.toISOString()}
+  modifiedTime={(data.updatedAt ?? data.publishedAt).toISOString()}
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+
+  <article class="container">
+    <header class="article-header">
+      <div class="article-meta">
+        <span class={difficultyClass}>{data.difficulty}</span>
+        <span class="pill pill--pattern">{data.pattern}</span>
+        <span>·</span>
+        <time datetime={data.publishedAt.toISOString()}>{fmtDate(data.publishedAt)}</time>
+        {data.updatedAt && (
+          <>
+            <span>·</span>
+            <span>updated {fmtDate(data.updatedAt)}</span>
+          </>
+        )}
+      </div>
+      <h1 class="article-title">
+        <span style="color: var(--ink-mute); font-variant-numeric: tabular-nums; font-size: 0.7em;">#{data.problem}</span>
+        {' '}
+        {data.title}
+      </h1>
+      <p class="article-description">{data.description}</p>
+      <p style="margin-top: 1rem; font-size: var(--fs-sm);">
+        <a href={data.leetcodeUrl} target="_blank" rel="noopener">
+          View problem on LeetCode →
+        </a>
+      </p>
+    </header>
+
+    <div class="prose">
+      <slot />
+    </div>
+
+    <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--rule);">
+      <p style="font-size: var(--fs-sm); color: var(--ink-mute);">
+        These are personal study notes by <a href="/about/">Steven Armenta</a>.
+        Spotted an error or have a sharper way to explain something?
+        Let me know via <a href="https://www.linkedin.com/in/stevenarmenta/" target="_blank" rel="noopener">LinkedIn</a>.
+      </p>
+    </footer>
+  </article>
+</BaseLayout>

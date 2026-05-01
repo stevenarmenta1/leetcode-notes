@@ -1,0 +1,26 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'notes'>;
+}
+
+const { entry } = Astro.props;
+const { data, slug } = entry;
+const difficultyClass = `pill pill--${data.difficulty.toLowerCase()}`;
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<a href={`/notes/${slug}/`} class="note-card">
+  <div class="note-card-meta">
+    <span style="font-variant-numeric: tabular-nums; color: var(--ink-soft);">
+      #{String(data.problem).padStart(4, '0')}
+    </span>
+    <span class={difficultyClass}>{data.difficulty}</span>
+    <span class="pill pill--pattern">{data.pattern}</span>
+    <time datetime={data.publishedAt.toISOString()}>{fmtDate(data.publishedAt)}</time>
+  </div>
+  <h3 class="note-card-title">{data.title}</h3>
+  <p class="note-card-desc">{data.description}</p>
+</a>
