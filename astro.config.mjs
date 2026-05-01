@@ -8,7 +8,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 // IMPORTANT: change `site` to your real domain before deploy.
 // Used for sitemap, RSS, canonical URLs, and Open Graph.
 export default defineConfig({
-  site: 'https://stevenarmenta.com',
+  site: 'https://stevenarmenta.dev',
   integrations: [mdx(), sitemap()],
   markdown: {
     shikiConfig: {
